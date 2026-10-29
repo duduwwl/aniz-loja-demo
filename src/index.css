@@ -476,6 +476,7 @@ body { font-weight: 400; letter-spacing: 0.002em; }
 
 .vitrine { min-height: calc(100svh - 104px); border: 0; background: var(--paper); }
 .glass { border: 0; min-height: 0; }
+.glass-scene .img { object-position: 50% 42%; image-rendering: auto; transform: scale(1.015); }
 .glass-sheen, .glass-letters { display: none; }
 .counter { gap: clamp(18px, 2vw, 30px); padding: clamp(28px, 5vw, 84px); background: var(--paper); }
 .hero-kicker { font-size: 0.875rem; font-weight: 600; color: var(--accent); }
@@ -499,6 +500,7 @@ body { font-weight: 400; letter-spacing: 0.002em; }
 .hanger { opacity: .7; padding-inline: clamp(10px, 1.5vw, 24px); }
 .hanger.is-active { opacity: 1; }
 .hanger-hook { width: 82px; height: 42px; margin-top: -4px; color: #4d6078; }
+.hanger-swing { display: grid; justify-items: center; width: 100%; transform-origin: 50% 0; }
 .garment { gap: 8px; padding: 0 5px 18px; align-items: center; }
 .garment-cutout { display: grid; place-items: end center; width: min(100%, 282px); height: 376px; }
 .garment-cutout img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 18px 18px rgb(16 31 57 / .14)); transition: transform 360ms var(--ease-out), filter 360ms var(--ease-out); pointer-events: none; }
@@ -541,6 +543,7 @@ body { font-weight: 400; letter-spacing: 0.002em; }
 @media (max-width: 900px) {
   .vitrine { grid-template-columns: 1fr; }
   .glass { min-height: 58svh; }
+  .glass-scene .img { object-position: 50% 34%; transform: scale(1.04); }
   .counter { padding-block: 44px 56px; }
   .vitrine-title { font-size: clamp(5rem, 18vw, 8rem); }
   .footer-grid { grid-template-columns: 1fr 1fr; }

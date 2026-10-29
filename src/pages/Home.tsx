@@ -21,13 +21,23 @@ const WINDOWS = [
 const RACK_PRODUCTS = products.filter((p) => [
   'pijama-curto-listras-rosa',
   'pijama-curto-cerejas',
+  'pijama-alcinha-listras',
+  'pijama-regata-caezinhos',
+  'conjunto-top-canelado',
   'praia-palmeiras',
+  'praia-marinho-macrame',
+  'biquini-garcas',
 ].includes(p.id));
 
 const RACK_CUTOUTS: Record<string, string> = {
   'pijama-curto-listras-rosa': 'rail-pijama-listras.png',
   'pijama-curto-cerejas': 'rail-pijama-cerejas.png',
+  'pijama-alcinha-listras': 'rail-pijama-alcinha.png',
+  'pijama-regata-caezinhos': 'rail-pijama-caezinhos.png',
+  'conjunto-top-canelado': 'rail-top-canelado.png',
   'praia-palmeiras': 'rail-moda-praia.png',
+  'praia-marinho-macrame': 'rail-praia-marinho.png',
+  'biquini-garcas': 'rail-biquini-garcas.png',
 };
 
 function Vitrine() {

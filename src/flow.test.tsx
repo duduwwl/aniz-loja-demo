@@ -32,13 +32,15 @@ describe('fluxo de compra demonstrativo', () => {
     expect(screen.queryByRole('link', { name: 'Ver todas as peças' })).toBeNull();
   });
 
-  it('mantém na arara somente roupas recortadas', () => {
+  it('mantém oito roupas recortadas na arara', () => {
     render(<App />);
 
     const rail = screen.getByRole('region', { name: 'Peças em destaque' });
-    expect(within(rail).getByRole('link', { name: /Pijama curto listras rosa/ })).toBeInTheDocument();
-    expect(within(rail).getByRole('link', { name: /Pijama curto estampa cerejas/ })).toBeInTheDocument();
-    expect(within(rail).getByRole('link', { name: /Estampa palmeiras/ })).toBeInTheDocument();
+    expect(within(rail).getAllByRole('link')).toHaveLength(8);
+    expect(within(rail).getByRole('link', { name: /Pijama de alcinha listrado/ })).toBeInTheDocument();
+    expect(within(rail).getByRole('link', { name: /Pijama regata cãezinhos/ })).toBeInTheDocument();
+    expect(within(rail).getByRole('link', { name: /Top e calcinha canelados/ })).toBeInTheDocument();
+    expect(within(rail).getByRole('link', { name: /Biquíni estampa garças/ })).toBeInTheDocument();
     expect(within(rail).queryByRole('link', { name: /Mala de bordo|Bolsa/ })).toBeNull();
   });
 

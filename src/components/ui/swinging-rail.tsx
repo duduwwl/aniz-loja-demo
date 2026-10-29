@@ -16,7 +16,13 @@ function Hanger({ i, x, step, children, active, reduce }: { i: number; x: Motion
       <svg className="hanger-hook" viewBox="0 0 60 28" aria-hidden="true">
         <path d="M30 2c4 0 6 3 6 6s-3 5-6 6L4 26h52L30 14" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
       </svg>
-      {children}
+      <motion.div
+        className="hanger-swing"
+        animate={reduce ? { rotate: 0 } : { rotate: active ? [0, -1.6, 1.25, -0.7, 0] : [0, -0.55, 0.45, 0] }}
+        transition={reduce ? { duration: 0 } : { duration: active ? 1.8 : 3.8, delay: i * 0.12, ease: 'easeInOut', repeat: Infinity, repeatDelay: active ? 1.8 : 3.2 }}
+      >
+        {children}
+      </motion.div>
     </motion.li>
   );
 }
