@@ -33,6 +33,8 @@ interface Shop {
   closeBag: () => void;
   toast: Toast | null;
   notify: (text: string) => void;
+  dismissToast: () => void;
+  holdToast: (hold: boolean) => void;
   draft: CheckoutDraft;
   setDraft: (fn: (d: CheckoutDraft) => CheckoutDraft) => void;
   lastOrder: Order | null;
@@ -57,16 +59,20 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines)); } catch { /* armazenamento indisponível: a sacola vive só nesta aba */ }
   }, [lines]);
 
+  const [toastHeld, holdToast] = useState(false);
   const notify = useCallback((text: string) => setToast({ id: Date.now(), text }), []);
+  const dismissToast = useCallback(() => { setToast(null); holdToast(false); }, []);
+  // some sozinho em 10 s, mas não enquanto o mouse ou o foco estiverem nele (WCAG 2.2.1)
   useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 5000);
+    if (!toast || toastHeld) return;
+    const t = setTimeout(() => setToast(null), 10000);
     return () => clearTimeout(t);
-  }, [toast]);
+  }, [toast, toastHeld]);
 
   const openBag = useCallback((el?: HTMLElement | null) => {
     opener.current = el ?? (document.activeElement as HTMLElement | null);
     setToast(null);
+    holdToast(false);
     setBagOpen(true);
   }, []);
   const closeBag = useCallback(() => {
@@ -86,9 +92,9 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<Shop>(() => ({
-    lines, dispatch, summary: totals(lines), bagOpen, openBag, closeBag, toast, notify,
+    lines, dispatch, summary: totals(lines), bagOpen, openBag, closeBag, toast, notify, dismissToast, holdToast,
     draft, setDraft: (fn) => setDraftState(fn), lastOrder, completeOrder,
-  }), [lines, bagOpen, openBag, closeBag, toast, notify, draft, lastOrder, completeOrder]);
+  }), [lines, bagOpen, openBag, closeBag, toast, notify, dismissToast, draft, lastOrder, completeOrder]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

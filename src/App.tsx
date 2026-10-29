@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { MotionConfig } from 'motion/react';
 import { useRoute } from './lib/router';
 import { ShopProvider } from './state/shop';
@@ -7,9 +7,11 @@ import { CartDrawer } from './components/CartDrawer';
 import { Home } from './pages/Home';
 import { Catalog } from './pages/Catalog';
 import { ProductPage } from './pages/ProductPage';
-import { Checkout } from './pages/Checkout';
 import { Confirmation } from './pages/Confirmation';
 import { NotFound } from './pages/NotFound';
+
+// o checkout (QR Code, formulários) só carrega quando alguém chega nele
+const Checkout = lazy(() => import('./pages/Checkout').then((m) => ({ default: m.Checkout })));
 
 const TITLES: Record<string, string> = {
   '': 'Aniz · Pijamas, lingerie, praia e malas em Lavras (demonstração)',
@@ -52,7 +54,7 @@ export default function App() {
       <ShopProvider>
         <a href="#conteudo" className="skip" onClick={(e) => { e.preventDefault(); document.getElementById('conteudo')?.focus(); }}>Pular para o conteúdo</a>
         <Header route={route} />
-        <main id="conteudo" tabIndex={-1} key={head ?? 'home'} className="route-fade">{page}</main>
+        <main id="conteudo" tabIndex={-1} key={head ?? 'home'} className="route-fade"><Suspense fallback={<p className="page">Carregando…</p>}>{page}</Suspense></main>
         <Footer />
         <CartDrawer />
         <Toast />

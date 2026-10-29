@@ -77,6 +77,9 @@ describe('sacola', () => {
     ]);
     expect(loadCart(saved)).toEqual([line('M', 2), line('G', MAX_QTY)]);
     expect(loadCart('{lixo')).toEqual([]);
+    // linhas repetidas viram uma só; esgotado não volta
+    expect(loadCart(JSON.stringify([line('M', 1), line('M', 2)]))).toEqual([line('M', 3)]);
+    expect(loadCart(JSON.stringify([{ productId: 'frasqueira-avec-vous', color: 'Bordô losangos', size: 'Único', qty: 1 }]))).toEqual([]);
     expect(loadCart(null)).toEqual([]);
   });
 });

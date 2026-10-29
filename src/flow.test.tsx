@@ -47,6 +47,7 @@ describe('fluxo de compra demonstrativo', () => {
     expect(screen.getByRole('button', { name: /Abrir sacola, 2 itens/ })).toBeInTheDocument();
 
     await go('#/checkout');
+    await screen.findByRole('heading', { level: 1, name: 'Checkout' });
     expect(screen.getByText('Compra demonstrativa — nenhuma cobrança será realizada')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Continuar para entrega' }));
     expect(screen.getByRole('alert')).toHaveTextContent('Informe seu nome completo.');
@@ -58,6 +59,12 @@ describe('fluxo de compra demonstrativo', () => {
     expect(screen.getByLabelText('Nome completo')).toHaveValue('Ana Souza');
     await user.click(screen.getByRole('button', { name: 'Continuar para entrega' }));
     expect(screen.getByLabelText('Cidade')).toHaveValue('Lavras');
+    // pular de etapa pelo indicador também não perde o que foi digitado
+    await user.clear(screen.getByLabelText('Bairro'));
+    await user.type(screen.getByLabelText('Bairro'), 'Jardim');
+    await user.click(screen.getByRole('button', { name: /Identificação/ }));
+    await user.click(screen.getByRole('button', { name: 'Continuar para entrega' }));
+    expect(screen.getByLabelText('Bairro')).toHaveValue('Jardim');
     await user.click(screen.getByRole('button', { name: 'Continuar para pagamento' }));
 
     await user.click(screen.getByRole('radio', { name: /Pix/ }));
@@ -80,6 +87,7 @@ describe('fluxo de compra demonstrativo', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([{ productId: 'mala-de-bordo-avec-vous', color: 'Bordô losangos', size: 'Único', qty: 1 }]));
     render(<App />);
     await go('#/checkout');
+    await screen.findByRole('heading', { level: 1, name: 'Checkout' });
     await fillCheckout(user, '3538223983');
     await user.click(screen.getByRole('button', { name: 'Continuar para pagamento' }));
     await user.click(screen.getByRole('radio', { name: /Cartão de crédito/ }));
@@ -103,6 +111,7 @@ describe('fluxo de compra demonstrativo', () => {
   it('checkout com sacola vazia bloqueia a finalização', async () => {
     render(<App />);
     await go('#/checkout');
+    await screen.findByRole('heading', { level: 1, name: 'Checkout' });
     expect(screen.getByText(/Sua sacola está vazia, então não há o que finalizar/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Pagar/ })).toBeNull();
   });

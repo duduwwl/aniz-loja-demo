@@ -8,11 +8,11 @@ import { MAX_QTY, variantLabel, type PricedLine } from '../lib/cart';
 export function QtyStepper({ value, onChange, label, min = 1 }: { value: number; onChange: (n: number) => void; label: string; min?: number }) {
   return (
     <div className="qty" role="group" aria-label={`Quantidade de ${label}`}>
-      <button type="button" className="qty-btn" onClick={() => onChange(value - 1)} disabled={value <= min} aria-label={`Diminuir quantidade de ${label}`}>
+      <button type="button" className="qty-btn" onClick={() => value > min && onChange(value - 1)} aria-disabled={value <= min} aria-label={`Diminuir quantidade de ${label}`}>
         <Minus size={16} aria-hidden="true" />
       </button>
       <output className="qty-value" aria-live="polite" aria-label={`${value} ${value === 1 ? 'unidade' : 'unidades'}`}>{value}</output>
-      <button type="button" className="qty-btn" onClick={() => onChange(value + 1)} disabled={value >= MAX_QTY} aria-label={`Aumentar quantidade de ${label}`}>
+      <button type="button" className="qty-btn" onClick={() => value < MAX_QTY && onChange(value + 1)} aria-disabled={value >= MAX_QTY} aria-label={`Aumentar quantidade de ${label}`}>
         <Plus size={16} aria-hidden="true" />
       </button>
     </div>

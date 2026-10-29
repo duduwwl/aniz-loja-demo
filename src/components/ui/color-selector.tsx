@@ -7,12 +7,12 @@ interface Props { name: string; colors: Color[]; value: string; onChange: (v: st
 
 export function ColorSelector({ name, colors, value, onChange, invalid, describedBy }: Props) {
   return (
-    <fieldset className="option-group" aria-invalid={invalid || undefined} aria-describedby={describedBy}>
+    <fieldset className="option-group">
       <legend>Cor{value ? <span className="option-current">: {value}</span> : null}</legend>
       <div className="swatches">
         {colors.map((c) => (
           <label key={c.name} className="swatch" title={c.name}>
-            <input type="radio" name={name} value={c.name} checked={value === c.name} onChange={() => onChange(c.name)} />
+            <input type="radio" name={name} value={c.name} checked={value === c.name} onChange={() => onChange(c.name)} aria-invalid={invalid || undefined} aria-describedby={describedBy} />
             <span className="swatch-dot" style={{ backgroundColor: c.hex }} aria-hidden="true" />
             <span className="sr-only">{c.name}</span>
           </label>

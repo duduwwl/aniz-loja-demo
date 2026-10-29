@@ -85,13 +85,15 @@ export function Header({ route }: { route: Route }) {
 }
 
 export function Toast() {
-  const { toast, openBag } = useShop();
+  const { toast, openBag, dismissToast, holdToast } = useShop();
   return (
     <div className="toast-region" aria-live="polite" role="status">
       {toast && (
-        <div className="toast" key={toast.id}>
+        <div className="toast" key={toast.id} onMouseEnter={() => holdToast(true)} onMouseLeave={() => holdToast(false)}
+          onFocus={() => holdToast(true)} onBlur={() => holdToast(false)}>
           <span>{toast.text}</span>
           <button type="button" className="toast-action" onClick={(e) => openBag(e.currentTarget)}>Ver sacola</button>
+          <button type="button" className="toast-close" onClick={dismissToast} aria-label="Fechar aviso"><X size={18} aria-hidden="true" /></button>
         </div>
       )}
     </div>

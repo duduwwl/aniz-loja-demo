@@ -69,10 +69,11 @@ export function loadCart(raw: string | null): CartLine[] {
       .filter((l): l is CartLine => {
         if (!l || typeof l.productId !== 'string' || typeof l.color !== 'string' || typeof l.size !== 'string') return false;
         const p = findProduct(l.productId);
-        return !!p && p.colors.some((c) => c.name === l.color) && p.sizes.includes(l.size) &&
+        return !!p && p.availability !== 'esgotado' && p.colors.some((c) => c.name === l.color) && p.sizes.includes(l.size) &&
           (p.models ? p.models.includes(l.model as string) : l.model === undefined) && Number.isFinite(l.qty);
       })
-      .map((l) => ({ productId: l.productId, color: l.color, size: l.size, ...(l.model ? { model: l.model } : {}), qty: clampQty(l.qty) }));
+      .map((l) => ({ productId: l.productId, color: l.color, size: l.size, ...(l.model ? { model: l.model } : {}), qty: clampQty(l.qty) }))
+      .reduce<CartLine[]>((acc, line) => cartReducer(acc, { type: 'add', line }), []);
   } catch {
     return [];
   }

@@ -67,11 +67,11 @@ function SizeGuide({ kind }: { kind: 'roupa' | 'sutia' }) {
 function OptionRadios({ legend, name, options, value, onChange, error }: { legend: string; name: string; options: string[]; value: string; onChange: (v: string) => void; error?: string }) {
   const errId = `${name}-erro`;
   return (
-    <fieldset className="option-group" aria-describedby={error ? errId : undefined} aria-invalid={error ? true : undefined}>
+    <fieldset className="option-group" data-invalid={error ? true : undefined}>
       <legend>{legend}</legend>
       <div className="opt-list">
         {options.map((o) => (
-          <label key={o} className="opt"><input type="radio" name={name} value={o} checked={value === o} onChange={() => onChange(o)} /><span>{o}</span></label>
+          <label key={o} className="opt"><input type="radio" name={name} value={o} checked={value === o} onChange={() => onChange(o)} aria-invalid={error ? true : undefined} aria-describedby={error ? errId : undefined} /><span>{o}</span></label>
         ))}
       </div>
       {error && <p id={errId} className="field-error">{error}</p>}
@@ -112,7 +112,7 @@ function ProductView({ p }: { p: Product }) {
     if (!size) err.size = 'Escolha um tamanho antes de adicionar.';
     setErrors(err);
     if (Object.keys(err).length) {
-      requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('[aria-invalid="true"] input')?.focus());
+      requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('input[aria-invalid="true"]')?.focus());
       return;
     }
     const line = { productId: p.id, color, size, ...(p.models ? { model } : {}), qty };

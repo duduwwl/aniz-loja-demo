@@ -54,8 +54,12 @@ function Stepper({ step, onGo }: { step: number; onGo: (n: number) => void }) {
   );
 }
 
-function IdentityStep({ draft, onNext }: { draft: CheckoutDraft; onNext: (v: Identity) => void }) {
-  const [v, setV] = useState(draft.identity);
+type SetDraft = (fn: (d: CheckoutDraft) => CheckoutDraft) => void;
+
+// Os campos escrevem direto no rascunho da sessão: trocar de etapa por qualquer caminho não perde nada.
+function IdentityStep({ draft, setDraft, onNext }: { draft: CheckoutDraft; setDraft: SetDraft; onNext: () => void }) {
+  const v = draft.identity;
+  const setV = (identity: Identity) => setDraft((d) => ({ ...d, identity }));
   const [e, setE] = useState<Errors<Identity>>({});
   const ref = useRef<HTMLFormElement>(null);
   const submit = (ev: React.FormEvent) => {
@@ -63,7 +67,7 @@ function IdentityStep({ draft, onNext }: { draft: CheckoutDraft; onNext: (v: Ide
     const err = validateIdentity(v);
     setE(err);
     if (hasErrors(err)) return focusFirstError(ref.current);
-    onNext(v);
+    onNext();
   };
   return (
     <form ref={ref} onSubmit={submit} noValidate className="co-form" aria-labelledby="co-step-title">
@@ -82,9 +86,11 @@ function IdentityStep({ draft, onNext }: { draft: CheckoutDraft; onNext: (v: Ide
   );
 }
 
-function AddressStep({ draft, onBack, onNext }: { draft: CheckoutDraft; onBack: (v: Address, s: CheckoutDraft['shippingId']) => void; onNext: (v: Address, s: CheckoutDraft['shippingId']) => void }) {
-  const [v, setV] = useState(draft.address);
-  const [ship, setShip] = useState(draft.shippingId);
+function AddressStep({ draft, setDraft, onBack, onNext }: { draft: CheckoutDraft; setDraft: SetDraft; onBack: () => void; onNext: () => void }) {
+  const v = draft.address;
+  const setV = (address: Address) => setDraft((d) => ({ ...d, address }));
+  const ship = draft.shippingId;
+  const setShip = (shippingId: CheckoutDraft['shippingId']) => setDraft((d) => ({ ...d, shippingId }));
   const [e, setE] = useState<Errors<Address>>({});
   const ref = useRef<HTMLFormElement>(null);
   const up = (k: keyof Address) => (x: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setV({ ...v, [k]: k === 'cep' ? maskCep(x.target.value) : x.target.value });
@@ -93,7 +99,7 @@ function AddressStep({ draft, onBack, onNext }: { draft: CheckoutDraft; onBack: 
     const err = validateAddress(v);
     setE(err);
     if (hasErrors(err)) return focusFirstError(ref.current);
-    onNext(v, ship);
+    onNext();
   };
   return (
     <form ref={ref} onSubmit={submit} noValidate className="co-form" aria-labelledby="co-step-title">
@@ -129,16 +135,18 @@ function AddressStep({ draft, onBack, onNext }: { draft: CheckoutDraft; onBack: 
           ))}
         </div>
       </fieldset>
-      <div className="co-nav"><button type="button" className="btn btn-ghost" onClick={() => onBack(v, ship)}>Voltar</button><button type="submit" className="btn btn-primary">Continuar para pagamento</button></div>
+      <div className="co-nav"><button type="button" className="btn btn-ghost" onClick={onBack}>Voltar</button><button type="submit" className="btn btn-primary">Continuar para pagamento</button></div>
     </form>
   );
 }
 
-function PaymentStep({ draft, total, onBack, onNext }: { draft: CheckoutDraft; total: number; onBack: (m: PayMethod, n: number) => void; onNext: (m: PayMethod, n: number) => void }) {
-  const [m, setM] = useState<PayMethod>(draft.method);
-  const [n, setN] = useState(draft.installments);
+function PaymentStep({ draft, setDraft, total, onBack, onNext }: { draft: CheckoutDraft; setDraft: SetDraft; total: number; onBack: () => void; onNext: () => void }) {
+  const m = draft.method;
+  const setM = (method: PayMethod) => setDraft((d) => ({ ...d, method }));
+  const n = draft.installments;
+  const setN = (installments: number) => setDraft((d) => ({ ...d, installments }));
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onNext(m, m === 'credito' ? n : 1); }} className="co-form" aria-labelledby="co-step-title">
+    <form onSubmit={(e) => { e.preventDefault(); onNext(); }} className="co-form" aria-labelledby="co-step-title">
       <fieldset className="option-group">
         <legend>Forma de pagamento</legend>
         <div className="radio-cards">
@@ -164,7 +172,7 @@ function PaymentStep({ draft, total, onBack, onNext }: { draft: CheckoutDraft; t
         </div>
       )}
       {m !== 'pix' && <p className="warn">Não digite dados de cartão real. A próxima etapa usa somente um cartão de teste predefinido.</p>}
-      <div className="co-nav"><button type="button" className="btn btn-ghost" onClick={() => onBack(m, n)}>Voltar</button><button type="submit" className="btn btn-primary">Revisar pedido</button></div>
+      <div className="co-nav"><button type="button" className="btn btn-ghost" onClick={onBack}>Voltar</button><button type="submit" className="btn btn-primary">Revisar pedido</button></div>
     </form>
   );
 }
@@ -191,11 +199,18 @@ function Review({ draft, onEdit, onPlace }: { draft: CheckoutDraft; onEdit: (ste
   const live = useRef<HTMLParagraphElement>(null);
   const installments = draft.method === 'credito' ? splitInstallments(total, draft.installments) : [total];
 
+  // após a espera simulada, usa a versão atual de onPlace (sacola atual) e ignora se a página já saiu
+  const placeRef = useRef(onPlace);
+  placeRef.current = onPlace;
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+
   const start = () => setPay(draft.method === 'pix' ? { kind: 'pix' } : { kind: 'card', scenario: 'aprovado', status: 'ready' });
   const runCard = async (scenario: CardScenario) => {
     setPay({ kind: 'card', scenario, status: 'processing' });
     const ok = await simulateCard(scenario);
-    if (ok) onPlace();
+    if (!mounted.current) return;
+    if (ok) placeRef.current();
     else setPay({ kind: 'card', scenario, status: 'failed' });
   };
 
@@ -275,7 +290,10 @@ export function Checkout() {
     window.scrollTo({ top: 0 });
   }, [step]);
 
+  const placing = useRef(false);
   const place = useMemo(() => () => {
+    if (placing.current || summary.priced.length === 0) return; // clique duplo ou sacola esvaziada durante o pagamento
+    placing.current = true;
     const order = buildOrder(newOrderNumber(), summary.priced, (l) => variantLabel(l), ship, draft.method, draft.installments);
     completeOrder(order);
     navigate('/pedido');
@@ -301,13 +319,9 @@ export function Checkout() {
       <div className="co-layout">
         <section aria-labelledby="co-step-title" className="co-main">
           <h2 id="co-step-title" ref={heading} tabIndex={-1} className="h-section">{STEPS[step]}</h2>
-          {step === 0 && <IdentityStep draft={draft} onNext={(identity) => setDraft((d) => ({ ...d, identity, step: 1 }))} />}
-          {step === 1 && <AddressStep draft={draft}
-            onBack={(address, shippingId) => setDraft((d) => ({ ...d, address, shippingId, step: 0 }))}
-            onNext={(address, shippingId) => setDraft((d) => ({ ...d, address, shippingId, step: 2 }))} />}
-          {step === 2 && <PaymentStep draft={draft} total={total}
-            onBack={(method, installments) => setDraft((d) => ({ ...d, method, installments, step: 1 }))}
-            onNext={(method, installments) => setDraft((d) => ({ ...d, method, installments, step: 3 }))} />}
+          {step === 0 && <IdentityStep draft={draft} setDraft={setDraft} onNext={() => go(1)} />}
+          {step === 1 && <AddressStep draft={draft} setDraft={setDraft} onBack={() => go(0)} onNext={() => go(2)} />}
+          {step === 2 && <PaymentStep draft={draft} setDraft={setDraft} total={total} onBack={() => go(1)} onNext={() => go(3)} />}
           {step === 3 && <Review draft={draft} onEdit={go} onPlace={place} />}
         </section>
         <aside className="co-summary" aria-labelledby="sum-title">
