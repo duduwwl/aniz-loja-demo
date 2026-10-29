@@ -1,189 +1,202 @@
-import { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useEffect, useId, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { categories, products, type CategoryId } from '../data/products';
+import { categories, findProduct, products, type Product } from '../data/products';
 import { store } from '../data/store';
 import { formatBRL } from '../lib/money';
+import { variantLabel } from '../lib/cart';
+import { useShop } from '../state/shop';
 import { Img } from '../components/Img';
 import { InView } from '../components/ui/in-view';
-import { BlurReveal } from '../components/ui/blur-reveal';
+import { TransitionPanel } from '../components/ui/transition-panel';
+import { AnimatedBackground } from '../components/ui/animated-background';
+import { SwingingRail } from '../components/ui/swinging-rail';
 import type { Route } from '../lib/router';
 
-const FIELDS = ['f-rosa', 'f-nevoa', 'f-areia', 'f-salvia'];
+// As vitrines que a Aniz monta na loja, cada uma com uma peça em destaque na etiqueta.
+const WINDOWS = [
+  { id: 'lua', name: 'Lua Luá', note: 'Pijamas em tons de rosa, coleção de outubro', image: 'Dd-PqM6DSWz_1', alt: 'Canto da Lua Luá na Aniz, com pijamas rosa na arara e a placa da marca', product: 'pijama-curto-cerejas' },
+  { id: 'caes', name: 'Cãezinhos fofos', note: 'A vitrine dos pijamas de cachorrinho', image: 'Dc_BSPZEQK6_3', alt: 'Vitrine da Aniz com camisola de cachorrinhos e o letreiro Cãezinhos fofos', product: 'pijama-love-fur-ever' },
+  { id: 'praia', name: 'Verão na praia', note: 'Biquínis e maiôs nas araras da loja', image: 'DcblDxjERIb_6', alt: 'Biquíni e maiô de folhagens preto e branco pendurados na loja', product: 'praia-folhagens-pb' },
+  { id: 'viagem', name: 'Pra viajar', note: 'Malas e frasqueiras Avec Vous', image: 'Dax6Re8Dout_4', alt: 'Mala e frasqueira bordô de losangos sobre colcha branca', product: 'mala-de-bordo-avec-vous' },
+] as const;
 
-// Parede de peças do hero: uma foto real por peça, em campos de cor que se repetem.
-const WALL = [
-  'pijama-curto-cerejas', 'praia-palmeiras', 'sutia-bojo-liso', 'pijama-love-fur-ever', 'bolsa-praia-de-chelles',
-  'biquini-garcas', 'pijama-pasta-lover', 'praia-marinho-macrame', 'mala-de-bordo-avec-vous', 'pijama-curto-listras-rosa',
-  'conjunto-top-canelado', 'praia-folhagens-pb', 'pijama-regata-caezinhos', 'pijama-alcinha-listras', 'biquini-faixa-macrame-preto',
-].map((id) => products.find((p) => p.id === id)!);
-
-function Hero() {
-  const rows = [0, 1, 2];
+/** A etiqueta pendurada na vitrine: escolhe modelo e tamanho e já põe na sacola. */
+function PriceTag({ p }: { p: Product }) {
+  const { dispatch, notify } = useShop();
+  const uid = useId();
+  const one = <T,>(xs?: readonly T[]) => (xs && xs.length === 1 ? xs[0] : undefined);
+  const [size, setSize] = useState(one(p.sizes) ?? '');
+  const [model, setModel] = useState(one(p.models) ?? '');
+  const [error, setError] = useState('');
+  const add = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (p.models && !model) return setError('Escolha o modelo antes de adicionar.');
+    if (!size) return setError('Escolha o tamanho antes de adicionar.');
+    const line = { productId: p.id, color: p.colors[0].name, size, ...(p.models ? { model } : {}), qty: 1 };
+    dispatch({ type: 'add', line });
+    notify(`${p.name} (${variantLabel(line)}) adicionado à sacola.`);
+    setError('');
+  };
+  const errId = `${uid}-erro`;
+  const invalid = (missing: boolean) => (error && missing ? true : undefined);
   return (
-    <section className="hero" aria-labelledby="hero-title">
-      <div className="wall" aria-hidden="true">
-        {rows.map((r) => (
-          <div key={r} className={`wall-row ${r % 2 ? 'is-offset' : ''}`}>
-            {[...WALL.slice(r * 5, r * 5 + 5), ...WALL.slice(((r + 1) % 3) * 5, ((r + 1) % 3) * 5 + 5)].map((p, i) => (
-              <a key={`${r}-${i}`} href={`#/produto/${p.id}`} className={`tile ${FIELDS[(r + i) % 4]}`} tabIndex={-1}>
-                <Img id={p.images[0].id} alt="" sizes="(min-width: 1024px) 16vw, 30vw" eager={r < 2 && i < 6} />
-              </a>
-            ))}
-          </div>
-        ))}
+    <form className="tag" onSubmit={add} noValidate aria-label={`Comprar ${p.name}`}>
+      <span className="tag-eyelet" aria-hidden="true" />
+      <p className="tag-name"><a href={`#/produto/${p.id}`}>{p.name}</a></p>
+      <p className="tag-price">{formatBRL(p.priceCents)} <span>preço fictício</span></p>
+      {p.models && (
+        <fieldset className="tag-opts">
+          <legend>Modelo</legend>
+          {p.models.map((m) => (
+            <label key={m} className="tag-opt">
+              <input type="radio" name={`${uid}-m`} checked={model === m} onChange={() => { setModel(m); setError(''); }}
+                aria-invalid={invalid(!model)} aria-describedby={error ? errId : undefined} />
+              <span>{m}</span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {p.sizes.length > 1 && (
+        <fieldset className="tag-opts">
+          <legend>Tamanho</legend>
+          {p.sizes.map((s) => (
+            <label key={s} className="tag-opt">
+              <input type="radio" name={`${uid}-s`} checked={size === s} onChange={() => { setSize(s); setError(''); }}
+                aria-invalid={invalid(!size)} aria-describedby={error ? errId : undefined} />
+              <span>{s}</span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {error && <p id={errId} className="field-error" role="alert">{error}</p>}
+      <button type="submit" className="btn btn-primary btn-block">Adicionar à sacola</button>
+    </form>
+  );
+}
+
+function Vitrine() {
+  const [active, setActive] = useState(0);
+  const w = WINDOWS[active];
+  const p = findProduct(w.product)!;
+  return (
+    <section className="vitrine" aria-labelledby="hero-title">
+      <div className="glass">
+        <TransitionPanel
+          activeIndex={active}
+          className="glass-panel"
+          transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
+          variants={{ enter: { opacity: 0, filter: 'blur(6px)', scale: 1.02 }, center: { opacity: 1, filter: 'blur(0px)', scale: 1 }, exit: { opacity: 0, filter: 'blur(6px)' } }}
+        >
+          {WINDOWS.map((v, i) => (
+            <figure key={v.id} className="glass-scene">
+              <Img id={v.image} alt={v.alt} sizes="(min-width: 900px) 62vw, 100vw" eager={i === 0} />
+              <figcaption className="glass-letters">
+                <span className="glass-name">{v.name}</span>
+                <span className="glass-note">{v.note}</span>
+              </figcaption>
+            </figure>
+          ))}
+        </TransitionPanel>
+        <span className="glass-sheen" aria-hidden="true" />
       </div>
-      <div className="hero-panel">
-        <div className="hero-copy">
-          <BlurReveal id="hero-title" className="hero-title">Pijamas, lingerie, praia e malas</BlurReveal>
-          <p className="hero-sub">A Aniz, de Lavras – MG, desde 1988. As peças desta loja online de demonstração foram fotografadas na nossa vitrine.</p>
-        </div>
-        <a href="#/produtos" className="btn btn-paper hero-cta">Ver produtos <ArrowRight size={18} aria-hidden="true" /></a>
+
+      <div className="counter">
+        <h1 id="hero-title" className="vitrine-title">A vitrine da Aniz, agora online</h1>
+        <p className="vitrine-sub">Pijamas, lingerie, moda praia e malas em Lavras, Minas Gerais, desde {store.since}. Uma loja de demonstração montada com as fotos da própria vitrine.</p>
+        <AnimatedBackground
+          label="Escolher vitrine"
+          className="switcher"
+          items={WINDOWS.map((v) => ({ id: v.id, label: v.name }))}
+          value={w.id}
+          onChange={(id) => setActive(WINDOWS.findIndex((v) => v.id === id))}
+          transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+        />
+        <PriceTag key={p.id} p={p} />
+        <a href="#/produtos" className="link-arrow">Ver todas as peças <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" /></a>
       </div>
     </section>
   );
 }
 
-/** Movimento-assinatura: índice de categorias com prévia. No toque, cada linha mostra a foto inline. */
-function CategoryIndex() {
-  const [active, setActive] = useState<CategoryId>('pijamas');
-  const reduce = useReducedMotion();
-  const current = categories.find((c) => c.id === active)!;
-  return (
-    <section className="section cat-index" aria-labelledby="cat-title">
-      <div className="cat-list">
-        <InView><h2 id="cat-title" className="h-section">O que tem na Aniz</h2></InView>
-        <ul className={`cat-rows ${active ? 'has-active' : ''}`}>
-          {categories.map((c, i) => {
-            const items = products.filter((p) => p.category === c.id);
-            const from = Math.min(...items.map((p) => p.priceCents));
-            return (
-              <InView as="li" key={c.id} delay={i * 0.07}>
-                <a
-                  href={`#/produtos?categoria=${c.id}`}
-                  className={`cat-row ${active === c.id ? 'is-active' : ''}`}
-                  onMouseEnter={() => setActive(c.id)}
-                  onFocus={() => setActive(c.id)}
-                >
-                  <span className="cat-name">{c.name}</span>
-                  <span className="cat-meta">{items.length} peças · a partir de {formatBRL(from)}</span>
-                  <span className={`cat-inline ${FIELDS[i]}`}><Img id={c.image} alt="" sizes="90vw" /></span>
-                </a>
-              </InView>
-            );
-          })}
-        </ul>
-      </div>
-      <div className="cat-preview" aria-hidden="true">
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.div
-            key={current.id}
-            className={`cat-frame ${FIELDS[categories.indexOf(current)]}`}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.03 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <Img id={current.image} alt="" sizes="(min-width: 1024px) 40vw, 1px" />
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </section>
-  );
-}
-
-function Showcase() {
-  const pair = [products.find((p) => p.id === 'pijama-love-fur-ever')!, products.find((p) => p.id === 'bolsa-praia-de-chelles')!];
-  return (
-    <section className="showcase" aria-labelledby="show-title">
-      {pair.map((p, i) => (
-        <div key={p.id} className={`show-panel ${i ? 'f-nevoa' : 'f-rosa'}`}>
-          {i === 0 && <h2 id="show-title" className="h-section show-heading">Chegaram agora</h2>}
-          <div className="show-object"><Img id={p.images[0].id} alt={p.images[0].alt} sizes="(min-width: 900px) 50vw, 100vw" /></div>
-          <div className="show-bar">
-            <p><span className="show-name">{p.name}</span><span className="show-price">{formatBRL(p.priceCents)}</span></p>
-            <div className="show-actions">
-              <a href={`#/produto/${p.id}`} className="btn btn-primary">Ver peça<span className="sr-only">: {p.name}</span></a>
-              <a href={`#/produtos?categoria=${p.category}`} className="btn btn-paper">Ver a categoria<span className="sr-only"> de {p.name}</span></a>
-            </div>
-          </div>
-        </div>
-      ))}
-    </section>
-  );
-}
-
-function Highlights() {
+function Rail() {
   const featured = products.filter((p) => p.featured);
   return (
-    <section className="section strip" aria-labelledby="strip-title">
-      <h2 id="strip-title" className="strip-title">Destaques da vitrine <span className="muted">{featured.length} peças</span></h2>
-      <ul className="strip-row" aria-label="Destaques: role para o lado">
-        {featured.map((p, i) => (
-          <li key={p.id}>
-            <a href={`#/produto/${p.id}`} className={`frame ${FIELDS[i % 4]}`}>
-              <Img id={p.images[0].id} alt="" sizes="(min-width: 1024px) 14vw, 40vw" />
-              <span className="frame-label"><span>{p.name}</span><span>{formatBRL(p.priceCents)}</span></span>
+    <section className="section rail-section" aria-labelledby="rail-title">
+      <InView className="section-head">
+        <h2 id="rail-title" className="h-section">Na arara</h2>
+        <p className="section-sub">Arraste os cabides, ou use as setas, para ver as peças fotografadas na loja.</p>
+      </InView>
+      <SwingingRail
+        label="Peças em destaque"
+        items={featured.map((p) => ({
+          key: p.id,
+          node: (
+            <a href={`#/produto/${p.id}`} className="garment" draggable={false}>
+              <span className="garment-img"><Img id={p.images[0].id} alt="" sizes="300px" /></span>
+              <span className="garment-name">{p.name}</span>
+              <span className="garment-price">{formatBRL(p.priceCents)}</span>
             </a>
-          </li>
-        ))}
+          ),
+        }))}
+      />
+    </section>
+  );
+}
+
+function Departments() {
+  return (
+    <section className="section depts" aria-labelledby="dept-title">
+      <InView className="section-head">
+        <h2 id="dept-title" className="h-section">Os cantinhos da loja</h2>
+      </InView>
+      <ul className="dept-list">
+        {categories.map((c, i) => {
+          const n = products.filter((p) => p.category === c.id).length;
+          return (
+            <InView as="li" key={c.id} delay={i * 0.06}>
+              <a href={`#/produtos?categoria=${c.id}`} className="dept">
+                <span className="dept-img"><Img id={c.image} alt="" sizes="(min-width: 900px) 25vw, 50vw" /></span>
+                <span className="dept-name">{c.name}</span>
+                <span className="dept-meta">{n} peças</span>
+              </a>
+            </InView>
+          );
+        })}
       </ul>
     </section>
   );
 }
 
 function About() {
-  const tiles = [
-    { id: 'Dd-PqM6DSWz_1', alt: 'Canto da Lua Luá na Aniz, com pijamas rosa em arara e prateleiras brancas', cap: 'O canto Lua Luá, com a coleção de outubro' },
-    { id: 'Dc_BSPZEQK6_3', alt: 'Vitrine da Aniz com camisola de cachorrinhos e o texto Nossa vitrine especial Cãezinhos fofos', cap: 'A vitrine dos cãezinhos fofos' },
-    { id: 'Dc_BSPZEQK6_1', alt: 'Cachorro salsicha com óculos de coração vermelho e laço no rabo', cap: 'O mascote da coleção de cachorrinhos' },
-    { id: 'DcblDxjERIb_6', alt: 'Biquíni e maiô de folhagens preto e branco pendurados na loja', cap: 'Moda praia na arara da loja' },
-  ];
   return (
     <section id="loja" className="section about" aria-labelledby="about-title">
-      <div className="about-text">
-        <InView><h2 id="about-title" className="h-section">A loja desde 1988</h2></InView>
-        <InView delay={0.08}>
-          <p className="lead">A Aniz é uma loja de Lavras, Minas Gerais, aberta em {store.since}. No perfil, ela se resume assim: pijamas, lingeries, biquínis e malas.</p>
-        </InView>
-        <InView delay={0.16}>
-          <p>Nas publicações recentes aparecem a coleção Lua Luá em tons de rosa, os pijamas de cachorrinhos, as bolsas De Chelles, a linha de malas Avec Vous e os pijamas Recco de mãe e filha. É dessas fotos que vem cada peça deste catálogo.</p>
-        </InView>
+      <div className="about-photo">
+        <Img id="Dc_BSPZEQK6_1" alt="Cachorro salsicha de óculos de coração, mascote da coleção de cachorrinhos" sizes="(min-width: 900px) 40vw, 100vw" />
       </div>
-      <ul className="about-tiles">
-        {tiles.map((t, i) => (
-          <InView as="li" key={t.id} delay={0.1 + i * 0.07}>
-            <figure>
-              <div className={`about-img ${FIELDS[i]}`}><Img id={t.id} alt={t.alt} sizes="(min-width: 1024px) 22vw, 45vw" /></div>
-              <figcaption>{t.cap}</figcaption>
-            </figure>
-          </InView>
-        ))}
-      </ul>
+      <div className="about-text">
+        <InView><h2 id="about-title" className="h-section">Desde 1988, em Lavras</h2></InView>
+        <InView delay={0.08}><p className="lead">A Aniz se apresenta assim: pijamas, lingeries, biquínis e malas. Uma loja de Minas Gerais que monta a vitrine por tema.</p></InView>
+        <InView delay={0.16}><p>Nas publicações recentes estão a coleção Lua Luá em rosa, os pijamas de cachorrinhos, as bolsas De Chelles, as malas Avec Vous e os pijamas Recco de mãe e filha. Cada peça desta página veio dessas fotos.</p></InView>
+      </div>
     </section>
   );
 }
 
-function Contact() {
-  const strip = ['DcblDxjERIb_5', 'Dddv5NAlYxE_2', 'Dd-PqM6DSWz_3', 'DcblDxjERIb_2', 'Dc_BSPZEQK6_6', 'Dax6Re8Dout_1', 'Dc57t_bEZ3p_2', 'DcblDxjERIb_3'];
+function Door() {
   return (
-    <section id="contato" className="contact" aria-labelledby="contact-title">
-      <div className="marquee" aria-hidden="true">
-        <div className="marquee-track">
-          {[...strip, ...strip].map((id, i) => <Img key={i} id={id} alt="" sizes="160px" className="marquee-img" />)}
-        </div>
-      </div>
-      <div className="contact-body">
-        <div className="contact-intro">
-          <h2 id="contact-title" className="h-contact">Fale com a Aniz</h2>
-          <p className="contact-sub">Para comprar de verdade, confirmar preços, tamanhos ou o endereço da loja, fale direto com a Aniz.</p>
-          <p className="contact-small">Loja física em {store.city}. Contatos tirados do Linktree e do Instagram oficiais da loja.</p>
-        </div>
-        <ul className="contact-cells">
-          <li><a href={store.whatsapp.url} target="_blank" rel="noopener noreferrer"><span className="cell-v">WhatsApp {store.whatsapp.label}</span></a></li>
-          <li><a href={store.phone.url}><span className="cell-v">Telefone {store.phone.label}</span></a></li>
-          <li><a href={store.instagram.url} target="_blank" rel="noopener noreferrer" className="cell-invert"><span className="cell-v">Instagram {store.instagram.handle}</span></a></li>
+    <section id="contato" className="door" aria-labelledby="contact-title">
+      <div className="door-glass">
+        <h2 id="contact-title" className="door-title">Fale com a Aniz</h2>
+        <p className="door-line">Pijamas · Lingerie · Moda praia · Malas · {store.city}</p>
+        <ul className="door-links">
+          <li><a href={store.whatsapp.url} target="_blank" rel="noopener noreferrer">WhatsApp {store.whatsapp.label}</a></li>
+          <li><a href={store.phone.url}>Telefone {store.phone.label}</a></li>
+          <li><a href={store.instagram.url} target="_blank" rel="noopener noreferrer">Instagram {store.instagram.handle}</a></li>
         </ul>
+        <p className="door-note">Para comprar de verdade, confirmar preços, tamanhos ou o endereço, fale direto com a loja.</p>
+      </div>
+      <div className="door-photo">
+        <Img id="Dd-PqM6DSWz_4" alt="Pijama rosa de cerejas exposto na loja, com a placa Lua Luá" sizes="(min-width: 900px) 40vw, 100vw" />
       </div>
     </section>
   );
@@ -199,12 +212,11 @@ export function Home({ route }: { route: Route }) {
   }, [section, route.nav]);
   return (
     <>
-      <Hero />
-      <CategoryIndex />
-      <Showcase />
-      <Highlights />
+      <Vitrine />
+      <Rail />
+      <Departments />
       <About />
-      <Contact />
+      <Door />
     </>
   );
 }
