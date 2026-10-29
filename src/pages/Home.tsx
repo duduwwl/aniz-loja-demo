@@ -18,6 +18,18 @@ const WINDOWS = [
   { id: 'viagem', name: 'Pra viajar', image: 'Dax6Re8Dout_4', alt: 'Mala e frasqueira bordô de losangos sobre colcha branca' },
 ] as const;
 
+const RACK_PRODUCTS = products.filter((p) => [
+  'pijama-curto-listras-rosa',
+  'pijama-curto-cerejas',
+  'praia-palmeiras',
+].includes(p.id));
+
+const RACK_CUTOUTS: Record<string, string> = {
+  'pijama-curto-listras-rosa': 'rail-pijama-listras.png',
+  'pijama-curto-cerejas': 'rail-pijama-cerejas.png',
+  'praia-palmeiras': 'rail-moda-praia.png',
+};
+
 function Vitrine() {
   const [active, setActive] = useState(0);
   const w = WINDOWS[active];
@@ -58,7 +70,6 @@ function Vitrine() {
 }
 
 function Rail() {
-  const featured = products.filter((p) => p.featured);
   return (
     <section className="section rail-section" aria-labelledby="rail-title">
       <InView className="section-head">
@@ -67,11 +78,13 @@ function Rail() {
       </InView>
       <SwingingRail
         label="Peças em destaque"
-        items={featured.map((p) => ({
+        items={RACK_PRODUCTS.map((p) => ({
           key: p.id,
           node: (
             <a href={`#/produto/${p.id}`} className="garment" draggable={false}>
-              <span className="garment-img"><Img id={p.images[0].id} alt="" sizes="300px" /></span>
+              <span className="garment-cutout">
+                <img src={`${import.meta.env.BASE_URL}img/${RACK_CUTOUTS[p.id]}`} alt="" width="1080" height="1440" loading="lazy" decoding="async" />
+              </span>
               <span className="garment-name">{p.name}</span>
               <span className="garment-price">{formatBRL(p.priceCents)}</span>
             </a>
