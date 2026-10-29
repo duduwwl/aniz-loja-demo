@@ -1,10 +1,8 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { categories, findProduct, products, type Product } from '../data/products';
+import { categories, products } from '../data/products';
 import { store } from '../data/store';
 import { formatBRL } from '../lib/money';
-import { variantLabel } from '../lib/cart';
-import { useShop } from '../state/shop';
 import { Img } from '../components/Img';
 import { InView } from '../components/ui/in-view';
 import { TransitionPanel } from '../components/ui/transition-panel';
@@ -12,72 +10,17 @@ import { AnimatedBackground } from '../components/ui/animated-background';
 import { SwingingRail } from '../components/ui/swinging-rail';
 import type { Route } from '../lib/router';
 
-// As vitrines que a Aniz monta na loja, cada uma com uma peça em destaque na etiqueta.
+// As vitrines que a Aniz monta na loja.
 const WINDOWS = [
-  { id: 'lua', name: 'Lua Luá', note: 'Pijamas em tons de rosa, coleção de outubro', image: 'Dd-PqM6DSWz_1', alt: 'Canto da Lua Luá na Aniz, com pijamas rosa na arara e a placa da marca', product: 'pijama-curto-cerejas' },
-  { id: 'caes', name: 'Cãezinhos fofos', note: 'A vitrine dos pijamas de cachorrinho', image: 'Dc_BSPZEQK6_3', alt: 'Vitrine da Aniz com camisola de cachorrinhos e o letreiro Cãezinhos fofos', product: 'pijama-love-fur-ever' },
-  { id: 'praia', name: 'Verão na praia', note: 'Biquínis e maiôs nas araras da loja', image: 'DcblDxjERIb_6', alt: 'Biquíni e maiô de folhagens preto e branco pendurados na loja', product: 'praia-folhagens-pb' },
-  { id: 'viagem', name: 'Pra viajar', note: 'Malas e frasqueiras Avec Vous', image: 'Dax6Re8Dout_4', alt: 'Mala e frasqueira bordô de losangos sobre colcha branca', product: 'mala-de-bordo-avec-vous' },
+  { id: 'lua', name: 'Lua Luá', image: 'Dd-PqM6DSWz_1', alt: 'Canto da Lua Luá na Aniz, com pijamas rosa na arara e a placa da marca' },
+  { id: 'caes', name: 'Cãezinhos fofos', image: 'Dc_BSPZEQK6_3', alt: 'Vitrine da Aniz com camisola de cachorrinhos e o letreiro Cãezinhos fofos' },
+  { id: 'praia', name: 'Verão na praia', image: 'DcblDxjERIb_6', alt: 'Biquíni e maiô de folhagens preto e branco pendurados na loja' },
+  { id: 'viagem', name: 'Pra viajar', image: 'Dax6Re8Dout_4', alt: 'Mala e frasqueira bordô de losangos sobre colcha branca' },
 ] as const;
-
-/** A etiqueta pendurada na vitrine: escolhe modelo e tamanho e já põe na sacola. */
-function PriceTag({ p }: { p: Product }) {
-  const { dispatch, notify } = useShop();
-  const uid = useId();
-  const one = <T,>(xs?: readonly T[]) => (xs && xs.length === 1 ? xs[0] : undefined);
-  const [size, setSize] = useState(one(p.sizes) ?? '');
-  const [model, setModel] = useState(one(p.models) ?? '');
-  const [error, setError] = useState('');
-  const add = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (p.models && !model) return setError('Escolha o modelo antes de adicionar.');
-    if (!size) return setError('Escolha o tamanho antes de adicionar.');
-    const line = { productId: p.id, color: p.colors[0].name, size, ...(p.models ? { model } : {}), qty: 1 };
-    dispatch({ type: 'add', line });
-    notify(`${p.name} (${variantLabel(line)}) adicionado à sacola.`);
-    setError('');
-  };
-  const errId = `${uid}-erro`;
-  const invalid = (missing: boolean) => (error && missing ? true : undefined);
-  return (
-    <form className="tag" onSubmit={add} noValidate aria-label={`Comprar ${p.name}`}>
-      <span className="tag-eyelet" aria-hidden="true" />
-      <p className="tag-name"><a href={`#/produto/${p.id}`}>{p.name}</a></p>
-      <p className="tag-price">{formatBRL(p.priceCents)} <span>preço fictício</span></p>
-      {p.models && (
-        <fieldset className="tag-opts">
-          <legend>Modelo</legend>
-          {p.models.map((m) => (
-            <label key={m} className="tag-opt">
-              <input type="radio" name={`${uid}-m`} checked={model === m} onChange={() => { setModel(m); setError(''); }}
-                aria-invalid={invalid(!model)} aria-describedby={error ? errId : undefined} />
-              <span>{m}</span>
-            </label>
-          ))}
-        </fieldset>
-      )}
-      {p.sizes.length > 1 && (
-        <fieldset className="tag-opts">
-          <legend>Tamanho</legend>
-          {p.sizes.map((s) => (
-            <label key={s} className="tag-opt">
-              <input type="radio" name={`${uid}-s`} checked={size === s} onChange={() => { setSize(s); setError(''); }}
-                aria-invalid={invalid(!size)} aria-describedby={error ? errId : undefined} />
-              <span>{s}</span>
-            </label>
-          ))}
-        </fieldset>
-      )}
-      {error && <p id={errId} className="field-error" role="alert">{error}</p>}
-      <button type="submit" className="btn btn-primary btn-block">Adicionar à sacola</button>
-    </form>
-  );
-}
 
 function Vitrine() {
   const [active, setActive] = useState(0);
   const w = WINDOWS[active];
-  const p = findProduct(w.product)!;
   return (
     <section className="vitrine" aria-labelledby="hero-title">
       <div className="glass">
@@ -90,10 +33,6 @@ function Vitrine() {
           {WINDOWS.map((v, i) => (
             <figure key={v.id} className="glass-scene">
               <Img id={v.image} alt={v.alt} sizes="(min-width: 900px) 62vw, 100vw" eager={i === 0} />
-              <figcaption className="glass-letters">
-                <span className="glass-name">{v.name}</span>
-                <span className="glass-note">{v.note}</span>
-              </figcaption>
             </figure>
           ))}
         </TransitionPanel>
@@ -101,8 +40,9 @@ function Vitrine() {
       </div>
 
       <div className="counter">
-        <h1 id="hero-title" className="vitrine-title">A vitrine da Aniz, agora online</h1>
-        <p className="vitrine-sub">Pijamas, lingerie, moda praia e malas em Lavras, Minas Gerais, desde {store.since}. Uma loja de demonstração montada com as fotos da própria vitrine.</p>
+        <p className="hero-kicker">Lavras, Minas Gerais · desde {store.since}</p>
+        <h1 id="hero-title" className="vitrine-title">ANIZ</h1>
+        <p className="vitrine-sub">Pijamas, lingerie, moda praia e malas. Uma vitrine de verdade, agora também online.</p>
         <AnimatedBackground
           label="Escolher vitrine"
           className="switcher"
@@ -111,8 +51,7 @@ function Vitrine() {
           onChange={(id) => setActive(WINDOWS.findIndex((v) => v.id === id))}
           transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
         />
-        <PriceTag key={p.id} p={p} />
-        <a href="#/produtos" className="link-arrow">Ver todas as peças <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" /></a>
+        <a href="#/produtos" className="link-arrow">Conhecer produtos <ArrowRight size={18} strokeWidth={1.75} aria-hidden="true" /></a>
       </div>
     </section>
   );

@@ -100,12 +100,6 @@ export function Toast() {
   );
 }
 
-function LocalTime() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => { const t = setInterval(() => setNow(new Date()), 30000); return () => clearInterval(t); }, []);
-  return <>{now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}</>;
-}
-
 export function Footer() {
   return (
     <footer className="site-footer">
@@ -119,10 +113,6 @@ export function Footer() {
           <a href="#/produtos">Todos os produtos</a>
           {categories.map((c) => <a key={c.id} href={`#/produtos?categoria=${c.id}`}>{c.name}</a>)}
         </nav>
-        <div className="ft ft-time">
-          <p className="ft-lead">{store.city}</p>
-          <p>Agora em Lavras: <LocalTime /></p>
-        </div>
         <div className="ft ft-contact">
           <a href={store.whatsapp.url} target="_blank" rel="noopener noreferrer">WhatsApp {store.whatsapp.label}</a>
           <a href={store.phone.url}>Telefone {store.phone.label}</a>
@@ -130,10 +120,6 @@ export function Footer() {
           <a href={store.facebook} target="_blank" rel="noopener noreferrer">Facebook /anizloja</a>
         </div>
         <div className="ft ft-mark" aria-hidden="true"><Wordmark /></div>
-        <a className="ft ft-cta" href="#/produtos">
-          <span>Ver todas as peças</span>
-          <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true"><path d="M8 40 40 8M16 8h24v24" fill="none" stroke="currentColor" strokeWidth="4" /></svg>
-        </a>
       </div>
     </footer>
   );

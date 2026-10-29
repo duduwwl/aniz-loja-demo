@@ -22,6 +22,16 @@ async function fillCheckout(user: ReturnType<typeof userEvent.setup>, phone = '3
 describe('fluxo de compra demonstrativo', () => {
   beforeEach(() => { localStorage.clear(); window.location.hash = '#/'; });
 
+  it('apresenta a nova vitrine sem etiqueta de compra nem CTA genérica', () => {
+    render(<App />);
+
+    expect(screen.getByRole('heading', { level: 1, name: 'ANIZ' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Peças em destaque' })).toBeInTheDocument();
+    expect(screen.queryByRole('form', { name: 'Comprar Pijama curto estampa cerejas' })).toBeNull();
+    expect(screen.queryByText('Pijamas em tons de rosa, coleção de outubro')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Ver todas as peças' })).toBeNull();
+  });
+
   it('exige tamanho, adiciona dois tamanhos, persiste e conclui com Pix', async () => {
     const user = userEvent.setup();
     const { unmount } = render(<App />);
