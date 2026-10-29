@@ -462,6 +462,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
   --step-body: clamp(1rem, 0.97rem + 0.16vw, 1.0625rem);
   --step-lead: clamp(1.25rem, 1.12rem + 0.55vw, 1.55rem);
   --step-head: clamp(2.75rem, 1.65rem + 4.1vw, 5.25rem);
+  --header-h: 72px;
 }
 
 body { font-weight: 400; letter-spacing: 0.002em; }
@@ -543,22 +544,69 @@ body { font-weight: 400; letter-spacing: 0.002em; }
 .stepper li > * { background: var(--step); }
 
 @media (max-width: 900px) {
+  .header-nav { display: none; }
+  .header-actions { margin-left: auto; }
+  .menu-btn { display: inline-grid; }
   .vitrine { grid-template-columns: 1fr; }
-  .glass { min-height: 58svh; }
+  .glass { min-height: clamp(360px, 58svh, 600px); }
   .glass-scene .img { object-position: 50% 34%; transform: scale(1.04); }
   .counter { padding-block: 44px 56px; }
   .vitrine-title { font-size: clamp(5rem, 18vw, 8rem); }
+  .about { grid-template-columns: 1fr; }
+  .about-photo { max-width: none; aspect-ratio: 16 / 11; }
+  .door { grid-template-columns: 1fr; }
+  .door-photo { min-height: clamp(320px, 55svh, 520px); }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .ft-statement, .ft-mark { grid-column: 1 / -1; }
 }
 @media (max-width: 560px) {
-  .header-inner { height: 64px; gap: 12px; }
+  :root { --header-h: 64px; --gap-section: 76px; }
+  .demo-strip { padding-block: 7px; font-size: .75rem; line-height: 1.35; }
+  .header-inner { height: 64px; gap: 8px; }
+  .header-brand { font-size: 1.375rem; }
+  .bag-btn { min-height: 44px; padding-inline: 12px; gap: 6px; }
+  .menu-btn { min-width: 44px; min-height: 44px; }
   .site-header { border-bottom-width: 2px; }
   .hero-kicker { font-size: .8125rem; }
   .vitrine-title { font-size: clamp(4.5rem, 21vw, 7rem); }
+  .glass { min-height: clamp(310px, 48svh, 460px); }
+  .counter { gap: 18px; padding: 32px var(--margin) 40px; }
   .switcher { gap: 5px; }
   .ab-item { min-height: 44px; padding-inline: 11px; font-size: .875rem; }
+  .section { padding-top: 76px; }
+  .section-head { gap: 10px; }
+  .section-sub { font-size: 1.125rem; }
+  .dept-list { grid-template-columns: 1fr 1fr; gap: 18px 12px; }
+  .dept-name { font-size: 1.625rem; }
+  .about { gap: 26px; }
+  .about-photo { aspect-ratio: 5 / 4; }
+  .door-glass { padding: 44px var(--margin); }
+  .door-title { font-size: clamp(3.35rem, 16vw, 4.75rem); }
+  .door-links a { font-size: clamp(1.5rem, 7vw, 2rem); }
+  .door-photo { min-height: 390px; }
   .footer-grid { grid-template-columns: 1fr; }
   .ft-nav, .ft-contact { grid-column: 1 / -1; }
-  .garment-cutout { height: 320px; }
+  .ft { padding: 28px var(--margin); }
+  .ft-mark { min-height: 164px; }
+  .garment-cutout { height: 300px; }
+  .rail { padding-top: 34px; }
+  .rail::before, .rail::after { width: 13px; }
+  .filters { padding: 16px; }
+  .field-inline { min-width: 0; width: 100%; }
+  .filters-row { align-items: stretch; }
+  .page { padding-top: 32px; }
+  .grid { gap: 28px 10px; }
+  .card-name { font-size: .9375rem; }
+  .card-meta, .card-price { font-size: .875rem; }
+  .gallery-main { aspect-ratio: 1 / 1; }
+  .buy, .co-summary, .pay-box { padding: 16px; }
+  .co-nav .btn { flex: 1 1 100%; }
+  .pix { gap: 16px; }
+}
+@media (max-width: 380px) {
+  .bag-text { display: none; }
+  .header-brand { font-size: 1.25rem; }
+  .vitrine-title { font-size: 4.3rem; }
+  .dept-name { font-size: 1.4rem; }
+  .garment-cutout { height: 272px; }
 }
