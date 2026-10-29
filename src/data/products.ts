@@ -32,7 +32,7 @@ export const categories: { id: CategoryId; name: string; image: string }[] = [
   { id: 'pijamas', name: 'Pijamas', image: 'Dd-PqM6DSWz_1' },
   { id: 'lingerie', name: 'Lingerie', image: 'Dc57t_bEZ3p_1' },
   { id: 'praia', name: 'Moda praia', image: 'DcblDxjERIb_8' },
-  { id: 'bolsas', name: 'Bolsas e malas', image: 'Dax6Re8Dout_4' },
+  { id: 'bolsas', name: 'Bolsas e malas', image: 'Dax6Re8Dout_4-clean' },
 ];
 
 const post = (code: string) => `https://www.instagram.com/p/${code}/`;
@@ -384,7 +384,7 @@ export const products: Product[] = [
     category: 'bolsas',
     brand: 'Avec Vous',
     priceCents: 17990,
-    images: [{ id: 'Dax6Re8Dout_4', alt: 'Frasqueira e mala bordô de losangos sobre colcha branca, com sacola de presente' }],
+    images: [{ id: 'Dax6Re8Dout_4-clean', alt: 'Frasqueira e mala bordô de losangos sobre colcha branca' }],
     colors: [{ name: 'Bordô losangos', hex: '#8e2f3a' }],
     sizes: ['Único'],
     description:

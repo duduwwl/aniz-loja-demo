@@ -15,7 +15,7 @@ const WINDOWS = [
   { id: 'lua', name: 'Lua Luá', image: 'Dd-PqM6DSWz_1', alt: 'Canto da Lua Luá na Aniz, com pijamas rosa na arara e a placa da marca' },
   { id: 'caes', name: 'Cãezinhos fofos', image: 'Dc_BSPZEQK6_3', alt: 'Vitrine da Aniz com camisola de cachorrinhos e o letreiro Cãezinhos fofos' },
   { id: 'praia', name: 'Verão na praia', image: 'DcblDxjERIb_6', alt: 'Biquíni e maiô de folhagens preto e branco pendurados na loja' },
-  { id: 'viagem', name: 'Pra viajar', image: 'Dax6Re8Dout_4', alt: 'Mala e frasqueira bordô de losangos sobre colcha branca' },
+  { id: 'viagem', name: 'Pra viajar', image: 'Dax6Re8Dout_4-clean', alt: 'Mala e frasqueira bordô de losangos sobre colcha branca' },
 ] as const;
 
 const RACK_PRODUCTS = products.filter((p) => [
@@ -133,7 +133,7 @@ function About() {
   return (
     <section id="loja" className="section about" aria-labelledby="about-title">
       <div className="about-photo">
-        <Img id="Dc_BSPZEQK6_1" alt="Cachorro salsicha de óculos de coração, mascote da coleção de cachorrinhos" sizes="(min-width: 900px) 40vw, 100vw" />
+        <Img id="Dd-PqM6DSWz_1" alt="Vitrine da Aniz com pijamas em tons de rosa pendurados" sizes="(min-width: 900px) 40vw, 100vw" />
       </div>
       <div className="about-text">
         <InView><h2 id="about-title" className="h-section">Desde 1988, em Lavras</h2></InView>

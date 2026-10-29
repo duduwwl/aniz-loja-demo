@@ -518,6 +518,8 @@ body { font-weight: 400; letter-spacing: 0.002em; }
 .dept-name { font-size: clamp(1.75rem, 1.2rem + 1.4vw, 2.75rem); }
 .about-photo { border: 0; }
 .door { border: 0; }
+.about-photo .img { object-position: 50% 38%; }
+.door-photo .img { object-position: 50% 30%; }
 .door-glass { padding-block: clamp(48px, 7vw, 112px); }
 .door-title { font-size: clamp(3.5rem, 2rem + 5vw, 7rem); letter-spacing: -0.05em; }
 .door-links a { font-size: clamp(1.6rem, 1.15rem + 1.6vw, 2.75rem); }
