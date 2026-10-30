@@ -12,7 +12,7 @@ import type { Route } from '../lib/router';
 
 // As vitrines que a Aniz monta na loja.
 const WINDOWS = [
-  { id: 'lua', name: 'Lua Luá', image: 'Dd-PqM6DSWz_1', alt: 'Canto da Lua Luá na Aniz, com pijamas rosa na arara e a placa da marca' },
+  { id: 'lua', name: 'Lua Luá', image: 'hero-aniz', alt: 'Vitrine da Aniz com pijama rosa de cerejas em destaque na arara' },
   { id: 'caes', name: 'Cãezinhos fofos', image: 'Dc_BSPZEQK6_3', alt: 'Vitrine da Aniz com camisola de cachorrinhos e o letreiro Cãezinhos fofos' },
   { id: 'praia', name: 'Verão na praia', image: 'DcblDxjERIb_6', alt: 'Biquíni e maiô de folhagens preto e branco pendurados na loja' },
   { id: 'viagem', name: 'Pra viajar', image: 'Dax6Re8Dout_4-clean', alt: 'Mala e frasqueira bordô de losangos sobre colcha branca' },
